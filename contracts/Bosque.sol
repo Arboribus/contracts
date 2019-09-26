@@ -1,29 +1,29 @@
 pragma solidity ^0.5.0;
 
 import "./TradeableERC721Token.sol";
-import "./Creature.sol";
+import "./Arbol.sol";
 import "./Factory.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /**
- * @title CreatureLootBox
+ * @title Bosque
  *
- * CreatureLootBox - a tradeable loot box of Creatures.
+ * Bosque - a tradeable collection of Arbol.
  */
-contract CreatureLootBox is TradeableERC721Token {
-    uint256 NUM_CREATURES_PER_BOX = 3;
+contract Bosque is TradeableERC721Token {
+    uint256 NUM_ARBOLES_PER_BOSQUE = 3;
     uint256 OPTION_ID = 0;
     address factoryAddress;
 
-    constructor(address _proxyRegistryAddress, address _factoryAddress) TradeableERC721Token("CreatureLootBox", "LOOTBOX", _proxyRegistryAddress) public {
+    constructor(address _proxyRegistryAddress, address _factoryAddress) TradeableERC721Token("Bosque", "BOSQUE", _proxyRegistryAddress) public {
         factoryAddress = _factoryAddress;
     }
 
     function unpack(uint256 _tokenId) public {
-        require(ownerOf(_tokenId) == msg.sender);
+        require(ownerOf(_tokenId) == msg.sender,"sender not owner");
 
         // Insert custom logic for configuring the item here.
-        for (uint256 i = 0; i < NUM_CREATURES_PER_BOX; i++) {
+        for (uint256 i = 0; i < NUM_ARBOLES_PER_BOSQUE; i++) {
             // Mint the ERC721 item(s).
             Factory factory = Factory(factoryAddress);
             factory.mint(OPTION_ID, msg.sender);
@@ -34,10 +34,10 @@ contract CreatureLootBox is TradeableERC721Token {
     }
 
     function baseTokenURI() public view returns (string memory) {
-        return "https://opensea-creatures-api.herokuapp.com/api/box/";
+        return "https://api.arboribus.network/bosque/";
     }
 
-    function itemsPerLootbox() public view returns (uint256) {
-        return NUM_CREATURES_PER_BOX;
+    function itemsPerBosque() public view returns (uint256) {
+        return NUM_ARBOLES_PER_BOSQUE;
     }
 }

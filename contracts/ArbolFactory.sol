@@ -2,44 +2,44 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Factory.sol";
-import "./Creature.sol";
-import "./CreatureLootBox.sol";
+import "./Arbol.sol";
+import "./Bosque.sol";
 import "./Strings.sol";
 
-contract CreatureFactory is Factory, Ownable {
+contract ArbolFactory is Factory, Ownable {
   using Strings for string;
 
   address public proxyRegistryAddress;
   address public nftAddress;
-  address public lootBoxNftAddress;
-  string public baseURI = "https://opensea-creatures-api.herokuapp.com/api/factory/";
+  address public bosqueNftAddress;
+  string public baseURI = "https://api.arboribus.network/factory/";
 
   /**
-   * Enforce the existence of only 100 OpenSea creatures.
+   * Enforce the existence of only 100 Arbol.
    */
-  uint256 CREATURE_SUPPLY = 100;
+  uint256 ARBOL_SUPPLY = 100;
 
   /**
-   * Three different options for minting Creatures (basic, premium, and gold).
+   * Three different options for minting Arboles (basic, average, and bulk).
    */
   uint256 NUM_OPTIONS = 3;
-  uint256 SINGLE_CREATURE_OPTION = 0;
-  uint256 MULTIPLE_CREATURE_OPTION = 1;
-  uint256 LOOTBOX_OPTION = 2;
-  uint256 NUM_CREATURES_IN_MULTIPLE_CREATURE_OPTION = 4;
+  uint256 SINGLE_ARBOL_OPTION = 0;
+  uint256 MULTIPLE_ARBOL_OPTION = 1;
+  uint256 BOSQUE_OPTION = 2;
+  uint256 NUM_ARBOLES_IN_MULTIPLE_ARBOL_OPTION = 4;
 
   constructor(address _proxyRegistryAddress, address _nftAddress) public {
     proxyRegistryAddress = _proxyRegistryAddress;
     nftAddress = _nftAddress;
-    lootBoxNftAddress = address(new CreatureLootBox(_proxyRegistryAddress, address(this)));
+    bosqueNftAddress = address(new Bosque(_proxyRegistryAddress, address(this)));
   }
 
   function name() external view returns (string memory) {
-    return "OpenSeaCreature Item Sale";
+    return "Arbol Item Sale";
   }
 
   function symbol() external view returns (string memory) {
-    return "CPF";
+    return "ARBOLFACTORY";
   }
 
   function supportsFactoryInterface() public view returns (bool) {
@@ -49,24 +49,24 @@ contract CreatureFactory is Factory, Ownable {
   function numOptions() public view returns (uint256) {
     return NUM_OPTIONS;
   }
-  
+
   function mint(uint256 _optionId, address _toAddress) public {
     // Must be sent from the owner proxy or owner.
     ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
-    assert(address(proxyRegistry.proxies(owner())) == msg.sender || owner() == msg.sender || msg.sender == lootBoxNftAddress);
-    require(canMint(_optionId));
+    assert(address(proxyRegistry.proxies(owner())) == msg.sender || owner() == msg.sender || msg.sender == bosqueNftAddress);
+    require(canMint(_optionId),"can't mint");
 
-    Creature openSeaCreature = Creature(nftAddress);
-    if (_optionId == SINGLE_CREATURE_OPTION) {
-      openSeaCreature.mintTo(_toAddress);
-    } else if (_optionId == MULTIPLE_CREATURE_OPTION) {
-      for (uint256 i = 0; i < NUM_CREATURES_IN_MULTIPLE_CREATURE_OPTION; i++) {
-        openSeaCreature.mintTo(_toAddress);
+    Arbol arbol = Arbol(nftAddress);
+    if (_optionId == SINGLE_ARBOL_OPTION) {
+      arbol.mintTo(_toAddress);
+    } else if (_optionId == MULTIPLE_ARBOL_OPTION) {
+      for (uint256 i = 0; i < NUM_ARBOLES_IN_MULTIPLE_ARBOL_OPTION; i++) {
+        arbol.mintTo(_toAddress);
       }
-    } else if (_optionId == LOOTBOX_OPTION) {
-      CreatureLootBox openSeaCreatureLootBox = CreatureLootBox(lootBoxNftAddress);
-      openSeaCreatureLootBox.mintTo(_toAddress);
-    } 
+    } else if (_optionId == BOSQUE_OPTION) {
+      Bosque bosque = Bosque(bosqueNftAddress);
+      bosque.mintTo(_toAddress);
+    }
   }
 
   function canMint(uint256 _optionId) public view returns (bool) {
@@ -74,21 +74,21 @@ contract CreatureFactory is Factory, Ownable {
       return false;
     }
 
-    Creature openSeaCreature = Creature(nftAddress);
-    uint256 creatureSupply = openSeaCreature.totalSupply();
+    Arbol arbol = Arbol(nftAddress);
+    uint256 arbolSupply = arbol.totalSupply();
 
     uint256 numItemsAllocated = 0;
-    if (_optionId == SINGLE_CREATURE_OPTION) {
+    if (_optionId == SINGLE_ARBOL_OPTION) {
       numItemsAllocated = 1;
-    } else if (_optionId == MULTIPLE_CREATURE_OPTION) {
-      numItemsAllocated = NUM_CREATURES_IN_MULTIPLE_CREATURE_OPTION;
-    } else if (_optionId == LOOTBOX_OPTION) {
-      CreatureLootBox openSeaCreatureLootBox = CreatureLootBox(lootBoxNftAddress);
-      numItemsAllocated = openSeaCreatureLootBox.itemsPerLootbox();
+    } else if (_optionId == MULTIPLE_ARBOL_OPTION) {
+      numItemsAllocated = NUM_ARBOLES_IN_MULTIPLE_ARBOL_OPTION;
+    } else if (_optionId == BOSQUE_OPTION) {
+      Bosque bosque = Bosque(bosqueNftAddress);
+      numItemsAllocated = bosque.itemsPerBosque();
     }
-    return creatureSupply < (CREATURE_SUPPLY - numItemsAllocated);
+    return arbolSupply < (ARBOL_SUPPLY - numItemsAllocated);
   }
-  
+
   function tokenURI(uint256 _optionId) external view returns (string memory) {
     return Strings.strConcat(
         baseURI,
